@@ -2,6 +2,7 @@ from tkinter import *
 from tkinter import messagebox
 import string
 import random
+import json
 # ---------------------------- PASSWORD GENERATOR ------------------------------- #
 def generate_password():
     lowercase = list(string.ascii_lowercase)
@@ -11,7 +12,7 @@ def generate_password():
 
     generated_password = ''
 
-    for _ in range (16):
+    for _ in range (12):
         randomizer = random.randint(1,4)
         if randomizer == 1:
             generated_password += random.choice(lowercase)
@@ -32,23 +33,41 @@ def fill_password_field():
 
 # ---------------------------- SAVE PASSWORD ------------------------------- #
 def save_details():
-    is_ok = False
     website = website_entry.get()
     user = user_entry.get()
     password = password_entry.get()
+    new_data = {
+        website: {
+            'email':user,
+            'password': password}
+    }
 
     if website == '' or password =='' or user =='':
         messagebox.showerror(title='Incomplete Details', message='Please complete the details')
     else:
-        is_ok = messagebox.askokcancel(title=website,message=f"Your details are\nWebsite: "
-                                                         f"{website}\nEmail: {user}\nPassword: {password}")
+        try:
+            with open('data.json', 'r') as f:
+                data = json.load(f)
+                data.update(new_data)
+        except FileNotFoundError:
+            with open('data.json', 'w') as f:
+                json.dump(new_data, f, indent=4)
+        else:
+            with open('data.json', 'w') as f:
+                json.dump(data, f, indent=4)
 
-    if is_ok:
-        with open('data.txt', 'a') as f:
-            new_entry = f"{website} | {user} | {password}\n"
-            f.write(new_entry)
-        website_entry.delete(0,END)
-        password_entry.delete(0,END)
+        finally:
+            website_entry.delete(0,END)
+            password_entry.delete(0,END)
+
+# ---------------------------- SEARCH   ------------------------------- #
+def search_data ():
+    to_search = website_entry.get()
+    with open('data.json') as f:
+        database = json.load(f)
+
+    messagebox.showinfo(title=to_search,message=
+    f"Email: {database[to_search]['email']}\nPassword: {database[to_search]['password']}")
 # ---------------------------- UI SETUP ------------------------------- #
 
 window = Tk()
@@ -69,9 +88,12 @@ user_label.grid(column=0,row=2)
 password_label = Label(text='Password:')
 password_label.grid(column=0,row=3)
 
-website_entry = Entry(width=52)
-website_entry.grid(column=1,row=1,columnspan=2)
+website_entry = Entry(width=33)
+website_entry.grid(column=1,row=1)
 website_entry.focus()
+
+search_button = Button(text='Search', width=15, command=search_data)
+search_button.grid(column=2, row=1)
 
 user_entry = Entry(width=52)
 user_entry.grid(column=1,row=2,columnspan=2)
