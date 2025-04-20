@@ -11,7 +11,7 @@ def generate_password():
 
     generated_password = ''
 
-    for _ in range (12):
+    for _ in range (16):
         randomizer = random.randint(1,4)
         if randomizer == 1:
             generated_password += random.choice(lowercase)
